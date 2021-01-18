@@ -1,0 +1,16 @@
+{
+    "name": "weybansky/php_mvc",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Abdulwahab Nasir",
+            "email": "weybansky@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "classmap": [
+            "./"
+        ] 
+    }
+}
