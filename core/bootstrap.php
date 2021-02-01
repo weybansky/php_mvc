@@ -4,6 +4,10 @@ use App\Core\App;
 use App\Core\Database\Connection;
 use App\Core\Database\QueryBuilder;
 
+// Load Environment Variable from .env
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
 App::bind("config", require "config.php");
 
 App::bind("database", new QueryBuilder(
@@ -26,4 +30,9 @@ function redirect($path)
 {
     $path = trim($path, "/");
     header("Location: /{$path}");
+}
+
+function env($key, $default = null)
+{
+    return $_ENV[$key] ? $_ENV[$key] : $default;
 }

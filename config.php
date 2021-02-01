@@ -2,10 +2,10 @@
 
 return [
     "database" => [
-        "name" => "database",
-        "username" => "root",
-        "password" => "",
-        "connection" => "mysql:host=127.0.0.1",
+        "name" => env("DATABASE_NAME"),
+        "username" => env("DATABASE_USERNAME"),
+        "password" => env("DATABASE_PASSWORD"),
+        "connection" => env("DATABASE_CONNECTION"),
         "options" => [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ],
