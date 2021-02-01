@@ -14,6 +14,10 @@ class Router
         "DELETE" => [],
     ];
 
+    public $matchUri;
+    public $matchController;
+    public $matchParams = [];
+
     public static function load($file)
     {
         $router = new static;
@@ -25,19 +29,80 @@ class Router
 
     public function direct($uri, $requestMethod)
     {
-
         $routes = $this->routes[$requestMethod];
 
-        if (array_key_exists($uri, $routes)) {
+        if ($this->match($uri, $routes)) {
             return $this->callAction(
-                ...explode("@", $routes[$uri]),
+                ...explode("@", $this->matchController),
             );
 
-        } elseif (array_key_exists($uri, $this->routes["GET"])) {
+        } elseif ($this->match($uri, $this->routes["GET"])) {
             throw new Exception("Method not allowed", 405);
         }
 
         throw new Exception("No Route Define for this URI", 404);
+    }
+
+    function match($uri, $routes) {
+        // get no of sections in uri
+        $uriSections = explode("/", $uri);
+
+        // aviod loop if no param
+        if (array_key_exists($uri, $routes)) {
+            $this->matchUri = $uri;
+            $this->matchController = $routes[$uri];
+            $this->setMatchParams($this->matchUri, $uri);
+            return true;
+        }
+
+        // get only routes with same sections
+        $routes = array_filter($routes, function ($key) use ($uriSections) {
+            $routeUriSections = explode("/", $key);
+            return (count($routeUriSections) == count($uriSections));
+        }, ARRAY_FILTER_USE_KEY);
+
+        foreach ($routes as $key => $value) {
+            $routeUriSections = explode("/", $key);
+            $status = [];
+
+            for ($index = 0; $index < count($routeUriSections); $index++) {
+                if ($this->isRouteSectionParam($routeUriSections[$index])) {
+                    // if param => true
+                    array_push($status, 1);
+                } elseif (!$this->isRouteSectionParam($routeUriSections[$index]) && $uriSections[$index] == $routeUriSections[$index]) {
+                    // if not param and equal => true
+                    array_push($status, 1);
+                } else {
+                    array_push($status, 0);
+                }
+            }
+
+            if (array_search(0, $status) === false) {
+                $this->matchUri = $key;
+                $this->matchController = $value;
+                $this->setMatchParams($this->matchUri, $uri);
+                break;
+            } else {continue;}
+        }
+
+        return isset($this->matchUri);
+    }
+
+    protected function isRouteSectionParam($routeSection)
+    {
+        return preg_match("/\{[a-zA-Z]{0,}\}/", $routeSection) ? true : false;
+    }
+
+    protected function setMatchParams($matchUri, $currentUri)
+    {
+        $matchUriSections = explode("/", $matchUri);
+        $currentUriSections = explode("/", $currentUri);
+        for ($index = 0; $index < count($currentUriSections); $index++) {
+            if ($this->isRouteSectionParam($matchUriSections[$index])) {
+                $key = trim($matchUriSections[$index], "{}");
+                $this->matchParams[$key] = $currentUriSections[$index];
+            }
+        }
     }
 
     protected function callAction($controller, $method)
@@ -49,7 +114,7 @@ class Router
             throw new Exception("{$controller} does not respond to the {$method} method", 1);
         }
 
-        return $instance->$method();
+        return $instance->$method(...array_values($this->matchParams));
     }
 
     public function get($uri, $controller)

@@ -5,8 +5,12 @@
 <div>
 <?php foreach ($tasks as $task): ?>
 <li class="<?=$task->complete ? "strikethrough" : ""?>">
-    <a href="/tasks/<?=$task->id?>">
+    <span>
         <?=$task->description?>
+    <span>
+    |
+    <a href="/tasks/<?=$task->id?>">
+       View
     </a>
 </li>
 <?php endforeach;?>

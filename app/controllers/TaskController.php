@@ -13,13 +13,21 @@ class TaskController
             "tasks" => $tasks,
         ]);
     }
-    
+
     public function store()
     {
         App::get("database")->insert("tasks", [
             "description" => $_POST["description"],
         ]);
-        
+
         return redirect("tasks");
+    }
+
+    public function show($task)
+    {
+        $task = App::get("database")->selectOne("tasks", $task);
+        return view("task", [
+            "task" => $task,
+        ]);
     }
 }

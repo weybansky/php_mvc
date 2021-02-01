@@ -20,6 +20,14 @@ class QueryBuilder
         return $stmt->fetchAll(PDO::FETCH_CLASS);
     }
 
+    public function selectOne($table, $id)
+    {
+        $stmt = $this->pdo->prepare("SELECT * from {$table} WHERE id=:id");
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_OBJ);
+    }
+
     public function insert($table, $data)
     {
         $query = sprintf(
